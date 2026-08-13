@@ -13,6 +13,7 @@ Useful docs:
 """
 
 import os
+import argparse
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from src.knowledge_base import build_knowledge_base
 
@@ -90,6 +91,12 @@ def ask_question(vector_store, llm, question: str) -> dict:
     return {"answer": answer, "sources": sources}
 
 
+def print_result(result: dict) -> None:
+    print("\n📄 Sources:")
+    for i, src in enumerate(result["sources"], 1):
+        print(f"  {i}. {' '.join(src[:100].split())}...")
+    print(f"\n💬 Answer: {result['answer']}\n")
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # TODO 2: Complete the interactive loop
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -106,6 +113,11 @@ def main():
          - Calls ask_question() with their input
          - Prints the retrieved sources and the answer
     """
+
+    parser = argparse.ArgumentParser(description="Q&A chatbot for a marketing agency")
+    parser.add_argument("--query", help="ask a single question and exit")
+    args = parser.parse_args()
+
     data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
 
     if not os.path.isdir(data_dir):
@@ -113,6 +125,11 @@ def main():
 
     vector_store = build_knowledge_base(data_dir)
     llm = get_llm()
+
+    if args.query:
+        print_result(ask_question(vector_store, llm, args.query))
+        return
+
     print("\nAsk about services, pricing, or process. Type 'quit' to exit.\n")
     while True:
         try:
@@ -123,11 +140,7 @@ def main():
             break
         if not question:
             continue
-        result = ask_question(vector_store, llm, question)
-        print("\n📄 Sources:")
-        for i, src in enumerate(result["sources"], 1):
-            print(f"  {i}. {' '.join(src[:100].split())}...")
-        print(f"\n💬 Answer: {result['answer']}\n")
+        print_result(ask_question(vector_store, llm, question))
 
 
 if __name__ == "__main__":
