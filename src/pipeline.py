@@ -108,11 +108,17 @@ def main():
     """
     data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
 
+    if not os.path.isdir(data_dir):
+        raise SystemExit(f"Data directory not found: {data_dir}")
+
     vector_store = build_knowledge_base(data_dir)
     llm = get_llm()
     print("\nAsk about services, pricing, or process. Type 'quit' to exit.\n")
     while True:
-        question = input("> ").strip()
+        try:
+            question = input("> ").strip()
+        except (KeyboardInterrupt, EOFError):
+            break
         if question == "quit":
             break
         if not question:
