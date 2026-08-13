@@ -13,6 +13,7 @@ Useful docs:
 """
 
 import os
+import argparse
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from src.knowledge_base import build_knowledge_base
 
@@ -58,7 +59,7 @@ Answer:"""
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # TODO 1: Implement ask_question
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-def ask_question(vector_store, llm, question: str) -> dict:
+def ask_question(vector_store, llm, question: str) -> dict[str, str | list[str]]:
     """Retrieve relevant chunks and generate an answer.
 
     Steps:
@@ -80,14 +81,26 @@ def ask_question(vector_store, llm, question: str) -> dict:
             "answer"  -> str: the generated answer
             "sources" -> list[str]: the chunk texts that were retrieved
     """
-    # TODO: implement this (~6-8 lines)
-    raise NotImplementedError("TODO 1: Implement ask_question")
+    docs = vector_store.similarity_search(question, k=3)
+    sources = [doc.page_content for doc in docs]
+    # cap context so the question (last in the prompt) survives the 512-token limit
+    context = "\n\n".join(sources)[:1300]
+    prompt = PROMPT_TEMPLATE.format(context=context, question=question)
+    result = llm(prompt)
+    answer = result[0]["generated_text"].strip()
+    return {"answer": answer, "sources": sources}
 
+
+def print_result(result: dict) -> None:
+    print("\n Sources:")
+    for i, src in enumerate(result["sources"], 1):
+        print(f"  {i}. {' '.join(src[:100].split())}...")
+    print(f"\n Answer: {result['answer']}\n")
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # TODO 2: Complete the interactive loop
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-def main():
+def main() -> None:
     """Interactive Q&A loop.
 
     Steps:
@@ -100,10 +113,34 @@ def main():
          - Calls ask_question() with their input
          - Prints the retrieved sources and the answer
     """
+
+    parser = argparse.ArgumentParser(description="Q&A chatbot for a marketing agency")
+    parser.add_argument("--query", help="ask a single question and exit")
+    args = parser.parse_args()
+
     data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
 
-    # TODO: implement this (~10-12 lines)
-    raise NotImplementedError("TODO 2: Complete the interactive loop")
+    if not os.path.isdir(data_dir):
+        raise SystemExit(f"Data directory not found: {data_dir}")
+
+    vector_store = build_knowledge_base(data_dir)
+    llm = get_llm()
+
+    if args.query:
+        print_result(ask_question(vector_store, llm, args.query))
+        return
+
+    print("\nAsk about services, pricing, or process. Type 'quit' to exit.\n")
+    while True:
+        try:
+            question = input("> ").strip()
+        except (KeyboardInterrupt, EOFError):
+            break
+        if question == "quit":
+            break
+        if not question:
+            continue
+        print_result(ask_question(vector_store, llm, question))
 
 
 if __name__ == "__main__":
