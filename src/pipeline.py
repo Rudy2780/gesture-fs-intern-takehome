@@ -59,7 +59,7 @@ Answer:"""
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # TODO 1: Implement ask_question
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-def ask_question(vector_store, llm, question: str) -> dict:
+def ask_question(vector_store, llm, question: str) -> dict[str, str | list[str]]:
     """Retrieve relevant chunks and generate an answer.
 
     Steps:
@@ -100,7 +100,7 @@ def print_result(result: dict) -> None:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # TODO 2: Complete the interactive loop
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-def main():
+def main() -> None:
     """Interactive Q&A loop.
 
     Steps:
