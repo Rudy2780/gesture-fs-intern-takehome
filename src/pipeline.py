@@ -92,10 +92,10 @@ def ask_question(vector_store, llm, question: str) -> dict[str, str | list[str]]
 
 
 def print_result(result: dict) -> None:
-    print("\n📄 Sources:")
+    print("\n Sources:")
     for i, src in enumerate(result["sources"], 1):
         print(f"  {i}. {' '.join(src[:100].split())}...")
-    print(f"\n💬 Answer: {result['answer']}\n")
+    print(f"\n Answer: {result['answer']}\n")
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # TODO 2: Complete the interactive loop
